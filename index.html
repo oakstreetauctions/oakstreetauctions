@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oak Street Auctions · PGA Calcutta Series</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pga-dark:   #00162e;
+    --pga-mid:    #00264d;
+    --pga-red:    #c8102e;
+    --pga-light:  #f4f6f9;
+    --pga-border: #dde2ea;
+    --text-dark:  #0f1923;
+    --text-mid:   #4a5568;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--pga-light); color: var(--text-dark); }
+
+  .site-header {
+    background: var(--pga-dark);
+    height: 88px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 32px;
+    position: sticky; top: 0; z-index: 100;
+    transition: background 0.6s;
+  }
+  .logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .logo-icon { width: 44px; height: 44px; flex-shrink: 0; }
+  .logo-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: #fff; letter-spacing: 0.04em; display: block; }
+  .logo-sub  { font-size: 10px; font-weight: 500; color: rgba(255,255,255,0.55); letter-spacing: 0.12em; text-transform: uppercase; display: block; }
+
+  .clock-widget { display: flex; align-items: center; gap: 12px; }
+  .watch-face { width: 80px; height: 80px; flex-shrink: 0; }
+  #watch-canvas { display: block; }
+  #clock-time { font-size: 13px; font-weight: 600; color: var(--pga-red); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; display: block; transition: color 0.6s; }
+  #clock-date { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; display: block; }
+
+  .season-nav {
+    background: var(--pga-dark);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; justify-content: center;
+    position: sticky; top: 88px; z-index: 90;
+  }
+  .season-tab {
+    padding: 13px 24px; font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.45); letter-spacing: 0.08em;
+    cursor: pointer; border: none; background: none;
+    border-bottom: 3px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    text-transform: uppercase;
+  }
+  .season-tab:hover { color: rgba(255,255,255,0.8); }
+  .season-tab.active { color: #fff; border-bottom-color: var(--pga-red); }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
+  .season-panel { display: none; }
+  .season-panel.active { display: block; }
+  .group-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--text-mid);
+    margin: 36px 0 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--pga-border);
+  }
+  .group-label:first-child { margin-top: 0; }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+
+  .t-card {
+    background: #fff; border: 1px solid var(--pga-border);
+    border-radius: 6px; overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .t-card:not(.cancelled):hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(0,0,0,0.10); }
+  .t-card.cancelled { opacity: 0.45; filter: grayscale(1); cursor: default; }
+  .card-top { padding: 16px 14px 14px; border-bottom: 3px solid; }
+  .card-event { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2; }
+  .card-pill {
+    display: inline-block; margin-top: 8px;
+    padding: 3px 9px; border-radius: 3px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; text-decoration: none; color: #fff;
+  }
+  .card-pill.live-badge { animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+  .card-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .card-stat { font-size: 12px; color: var(--text-mid); display: flex; justify-content: space-between; }
+  .card-stat strong { font-weight: 600; color: var(--text-dark); }
+  .card-footer {
+    padding: 10px 14px; border-top: 1px solid var(--pga-border);
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    color: var(--pga-red); display: flex; align-items: center; gap: 5px;
+    transition: color 0.2s;
+  }
+  .card-footer:hover { color: var(--text-dark); }
+
+  footer { text-align: center; padding: 28px; font-size: 12px; color: var(--text-mid); border-top: 1px solid var(--pga-border); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="logo" href="#">
+    <svg class="logo-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="22" cy="22" r="22" fill="var(--pga-dark)"/>
+      <rect x="19" y="10" width="2.5" height="24" rx="1" fill="#fff"/>
+      <polygon id="logo-flag" points="21.5,10 34,16 21.5,22" fill="#c8102e"/>
+      <ellipse cx="22" cy="34" rx="7" ry="2" fill="rgba(255,255,255,0.15)"/>
+    </svg>
+    <div>
+      <span class="logo-name">Oak Street Auctions</span>
+      <span class="logo-sub">PGA Calcutta Series</span>
+    </div>
+  </a>
+  <div class="clock-widget">
+    <div class="watch-face">
+      <canvas id="watch-canvas" width="80" height="80"></canvas>
+    </div>
+    <div>
+      <span id="clock-time">12:00:00 PM</span>
+      <span id="clock-date">Loading...</span>
+    </div>
+  </div>
+</header>
+
+<nav class="season-nav">
+  <button class="season-tab active" data-season="2026">2026</button>
+  <button class="season-tab" data-season="2025">2025</button>
+  <button class="season-tab" data-season="2024">2024</button>
+  <button class="season-tab" data-season="2023">2023</button>
+  <button class="season-tab" data-season="2022">2022</button>
+</nav>
+
+<main>
+
+  <!-- 2026 -->
+  <section class="season-panel active" id="panel-2026">
+    <p class="group-label">Majors</p>
+    <div class="cards-grid" id="grid-2026-majors"></div>
+    <p class="group-label">FedEx Cup Playoffs</p>
+    <div class="cards-grid" id="grid-2026-fedex"></div>
+  </section>
+
+  <!-- 2025 -->
+  <section class="season-panel" id="panel-2025">
+    <p class="group-label">Majors</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=2054065467','_blank')">
+        <div class="card-top" style="background:#006747;border-bottom-color:#FFCD00">
+          <div class="card-event">The Masters</div>
+          <span class="card-pill" style="background:#006747;border:1px solid #FFCD00;color:#FFCD00">Results</span>
+        </div>
+        <div class="card-body">
+          <div class="card-stat"><span>Participants</span><strong>12</strong></div>
+          <div class="card-stat"><span>Augusta National</span></div>
+        </div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=217319047','_blank')">
+        <div class="card-top" style="background:#00205B;border-bottom-color:#ffffff">
+          <div class="card-event">PGA Championship</div>
+          <span class="card-pill" style="background:#00205B;border:1px solid #fff;color:#fff">Results</span>
+        </div>
+        <div class="card-body">
+          <div class="card-stat"><span>Participants</span><strong>4</strong></div>
+          <div class="card-stat"><span>Quail Hollow</span></div>
+        </div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1076246907','_blank')">
+        <div class="card-top" style="background:#00365F;border-bottom-color:#BF0D3E">
+          <div class="card-event">U.S. Open</div>
+          <span class="card-pill" style="background:#BF0D3E">Results</span>
+        </div>
+        <div class="card-body">
+          <div class="card-stat"><span>Participants</span><strong>7</strong></div>
+          <div class="card-stat"><span>Oakmont CC</span></div>
+        </div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card cancelled">
+        <div class="card-top" style="background:#5a4d00;border-bottom-color:#888">
+          <div class="card-event" style="color:#ccc">The Open Championship</div>
+          <span class="card-pill" style="background:transparent;border:1px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.6)">Cancelled</span>
+        </div>
+        <div class="card-body"><div class="card-stat"><span>Royal Portrush</span></div></div>
+        <div class="card-footer" style="color:#aaa;cursor:default">No auction held</div>
+      </div>
+    </div>
+    <p class="group-label">FedEx Cup Playoffs</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=949893791','_blank')">
+        <div class="card-top" style="background:#4D148C;border-bottom-color:#FF6600">
+          <div class="card-event">FedEx Cup Playoffs</div>
+          <span class="card-pill" style="background:#FF6600">Results</span>
+        </div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>8</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2024 -->
+  <section class="season-panel" id="panel-2024">
+    <p class="group-label">Majors</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=335471184','_blank')">
+        <div class="card-top" style="background:#006747;border-bottom-color:#FFCD00"><div class="card-event">The Masters</div><span class="card-pill" style="background:#006747;border:1px solid #FFCD00;color:#FFCD00">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>13</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1232233326','_blank')">
+        <div class="card-top" style="background:#00205B;border-bottom-color:#ffffff"><div class="card-event">PGA Championship</div><span class="card-pill" style="background:#00205B;border:1px solid #fff;color:#fff">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>10</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=149789497','_blank')">
+        <div class="card-top" style="background:#00365F;border-bottom-color:#BF0D3E"><div class="card-event">U.S. Open</div><span class="card-pill" style="background:#BF0D3E">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>7</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=102531966','_blank')">
+        <div class="card-top" style="background:#F0C020;border-bottom-color:#1B2D5B"><div class="card-event" style="color:#1B2D5B">The Open Championship</div><span class="card-pill" style="background:#1B2D5B;color:#F0C020">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>8</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <p class="group-label">FedEx Cup Playoffs</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=602341956','_blank')">
+        <div class="card-top" style="background:#4D148C;border-bottom-color:#FF6600"><div class="card-event">FedEx Cup Playoffs</div><span class="card-pill" style="background:#FF6600">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>9</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2023 -->
+  <section class="season-panel" id="panel-2023">
+    <p class="group-label">Majors</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=531960865','_blank')">
+        <div class="card-top" style="background:#006747;border-bottom-color:#FFCD00"><div class="card-event">The Masters</div><span class="card-pill" style="background:#006747;border:1px solid #FFCD00;color:#FFCD00">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>10</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=230745038','_blank')">
+        <div class="card-top" style="background:#00205B;border-bottom-color:#ffffff"><div class="card-event">PGA Championship</div><span class="card-pill" style="background:#00205B;border:1px solid #fff;color:#fff">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>6</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1862281653','_blank')">
+        <div class="card-top" style="background:#00365F;border-bottom-color:#BF0D3E"><div class="card-event">U.S. Open</div><span class="card-pill" style="background:#BF0D3E">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>11</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1820269099','_blank')">
+        <div class="card-top" style="background:#F0C020;border-bottom-color:#1B2D5B"><div class="card-event" style="color:#1B2D5B">The Open Championship</div><span class="card-pill" style="background:#1B2D5B;color:#F0C020">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>11</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <p class="group-label">FedEx Cup Playoffs</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=526999481','_blank')">
+        <div class="card-top" style="background:#4D148C;border-bottom-color:#FF6600"><div class="card-event">FedEx Cup Playoffs</div><span class="card-pill" style="background:#FF6600">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>9</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2022 -->
+  <section class="season-panel" id="panel-2022">
+    <p class="group-label">Majors</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=0','_blank')">
+        <div class="card-top" style="background:#006747;border-bottom-color:#FFCD00"><div class="card-event">The Masters</div><span class="card-pill" style="background:#006747;border:1px solid #FFCD00;color:#FFCD00">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>5</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1981240110','_blank')">
+        <div class="card-top" style="background:#00205B;border-bottom-color:#ffffff"><div class="card-event">PGA Championship</div><span class="card-pill" style="background:#00205B;border:1px solid #fff;color:#fff">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>4</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1852443744','_blank')">
+        <div class="card-top" style="background:#00365F;border-bottom-color:#BF0D3E"><div class="card-event">U.S. Open</div><span class="card-pill" style="background:#BF0D3E">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>4</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=1801498195','_blank')">
+        <div class="card-top" style="background:#F0C020;border-bottom-color:#1B2D5B"><div class="card-event" style="color:#1B2D5B">The Open Championship</div><span class="card-pill" style="background:#1B2D5B;color:#F0C020">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>5</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+    <p class="group-label">FedEx Cup Playoffs</p>
+    <div class="cards-grid">
+      <div class="t-card" style="cursor:pointer" onclick="window.open('https://docs.google.com/spreadsheets/d/1Yl4IGWJhSJM2VFFJDgU9SJoCEQOx2w3oRNpkcSc_GB4/edit#gid=930731806','_blank')">
+        <div class="card-top" style="background:#4D148C;border-bottom-color:#FF6600"><div class="card-event">FedEx Cup Playoffs</div><span class="card-pill" style="background:#FF6600">Results</span></div>
+        <div class="card-body"><div class="card-stat"><span>Participants</span><strong>4</strong></div></div>
+        <div class="card-footer">View Results <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+<footer>© 2026 Oak Street Auctions · PGA Calcutta Series</footer>
+
+<script>
+// TAB SWITCHING
+document.querySelectorAll('.season-tab').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.season-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.season-panel').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.season).classList.add('active');
+  });
+});
+
+// ARROW SVG
+function arrow() {
+  return '<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5h6M5 2l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+}
+
+// 2026 TOURNAMENTS
+var t26 = [
+  { id:'masters', name:'The Masters',        venue:'Augusta National', group:'majors',
+    start:'2026-04-09', end:'2026-04-12', auctionDate:'Apr 8 · 6:30 PM',
+    fieldUrl:'https://datagolf.com/major-fields?major=masters',
+    sheet:'YOUR_MASTERS_2026_SHEET_LINK',
+    bg:'#006747', border:'#FFCD00', pillBg:'#006747', pillBorder:'#FFCD00', pillColor:'#FFCD00', nameColor:'#fff' },
+  { id:'pga', name:'PGA Championship',       venue:'Aronimink GC',    group:'majors',
+    start:'2026-05-14', end:'2026-05-17', auctionDate:'May 13 · 6:30 PM',
+    fieldUrl:'https://datagolf.com/major-fields?major=pga-championship',
+    sheet:'YOUR_PGA_2026_SHEET_LINK',
+    bg:'#00205B', border:'#ffffff', pillBg:'#00205B', pillBorder:'#fff', pillColor:'#fff', nameColor:'#fff' },
+  { id:'usopen', name:'U.S. Open',           venue:'Oakmont CC',      group:'majors',
+    start:'2026-06-18', end:'2026-06-21', auctionDate:'Jun 17 · 6:30 PM',
+    fieldUrl:'https://datagolf.com/major-fields?major=us-open',
+    sheet:'YOUR_USOPEN_2026_SHEET_LINK',
+    bg:'#00365F', border:'#BF0D3E', pillBg:'#BF0D3E', pillBorder:null, pillColor:'#fff', nameColor:'#fff' },
+  { id:'open', name:'The Open Championship', venue:'Royal Troon',     group:'majors',
+    start:'2026-07-16', end:'2026-07-19', auctionDate:'Jul 15 · 6:30 PM',
+    fieldUrl:'https://datagolf.com/major-fields?major=the-open',
+    sheet:'YOUR_OPEN_2026_SHEET_LINK',
+    bg:'#F0C020', border:'#1B2D5B', pillBg:'#1B2D5B', pillBorder:null, pillColor:'#F0C020', nameColor:'#1B2D5B' },
+  { id:'fedex', name:'FedEx Cup Playoffs',   venue:'TBD',             group:'fedex',
+    start:'2026-08-13', end:'2026-08-30', auctionDate:'Aug 12 · 6:30 PM',
+    fieldUrl:'https://datagolf.com/tours/pga-tour/projected-standings',
+    sheet:'YOUR_FEDEX_2026_SHEET_LINK',
+    bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
+];
+
+function build2026() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  t26.forEach(function(t) {
+    var start = new Date(t.start); start.setHours(0,0,0,0);
+    var end   = new Date(t.end);   end.setHours(23,59,59,999);
+    var live     = today >= start && today <= end;
+    var final    = today > end;
+    var upcoming = today < start;
+    var hasSheet = t.sheet.indexOf('YOUR_') !== 0;
+
+    var pillLabel, pillStyle, pillClass = 'card-pill';
+    if (live) {
+      pillLabel = 'Live · Tracker';
+      pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
+      pillClass += ' live-badge';
+    } else if (final) {
+      pillLabel = 'Results';
+      pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
+    } else {
+      pillLabel = 'Field';
+      pillStyle = 'background:transparent;border:1px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.75);';
+    }
+
+    var href = upcoming ? t.fieldUrl : (hasSheet ? t.sheet : '#');
+    var clickable = upcoming || (hasSheet && (live || final));
+
+    var footerHtml = upcoming
+      ? '<span style="color:var(--text-mid);font-size:11px;font-weight:500">Auction: ' + t.auctionDate + '</span>'
+      : (live ? 'View Tracker ' + arrow() : 'View Results ' + arrow());
+
+    var card = document.createElement('div');
+    card.className = 't-card';
+    if (clickable) {
+      card.style.cursor = 'pointer';
+      card.onclick = (function(u) { return function() { window.open(u, '_blank'); }; })(href);
+    }
+    card.innerHTML =
+      '<div class="card-top" style="background:' + t.bg + ';border-bottom-color:' + t.border + '">' +
+        '<div class="card-event" style="color:' + t.nameColor + '">' + t.name + '</div>' +
+        '<span class="' + pillClass + '" style="' + pillStyle + '">' + pillLabel + '</span>' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="card-stat"><span>Participants</span><strong>—</strong></div>' +
+        '<div class="card-stat"><span>' + t.venue + '</span></div>' +
+      '</div>' +
+      '<div class="card-footer">' + footerHtml + '</div>';
+
+    document.getElementById(t.group === 'fedex' ? 'grid-2026-fedex' : 'grid-2026-majors').appendChild(card);
+  });
+}
+build2026();
+
+// THEMES
+var themes = {
+  masters: { dark:'#003d22', mid:'#005a32', red:'#FFCD00', logo:'#FFCD00', bezel:'#FFCD00', hand:'#006747' },
+  pga:     { dark:'#00132e', mid:'#00205B', red:'#ffffff', logo:'#ffffff', bezel:'#00205B', hand:'#ffffff' },
+  usopen:  { dark:'#001e35', mid:'#00365F', red:'#BF0D3E', logo:'#BF0D3E', bezel:'#BF0D3E', hand:'#00365F' },
+  open:    { dark:'#8a6d00', mid:'#b38f00', red:'#1B2D5B', logo:'#1B2D5B', bezel:'#F0C020', hand:'#1B2D5B' },
+  fedex:   { dark:'#2a0a52', mid:'#4D148C', red:'#FF6600', logo:'#FF6600', bezel:'#FF6600', hand:'#4D148C' },
+  def:     { dark:'#00162e', mid:'#00264d', red:'#c8102e', logo:'#c8102e', bezel:'#c8102e', hand:'#00264d' }
+};
+
+function applyTheme(key) {
+  var t = themes[key] || themes.def;
+  var s = document.documentElement.style;
+  s.setProperty('--pga-dark', t.dark);
+  s.setProperty('--pga-mid',  t.mid);
+  s.setProperty('--pga-red',  t.red);
+  var flag = document.getElementById('logo-flag');
+  if (flag) flag.setAttribute('fill', t.logo);
+  window._bezel = t.bezel;
+  window._hand  = t.hand;
+}
+
+function detectTheme() {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var ev = [
+    { key:'masters', s:new Date('2026-04-09'), e:new Date('2026-04-12') },
+    { key:'pga',     s:new Date('2026-05-14'), e:new Date('2026-05-17') },
+    { key:'usopen',  s:new Date('2026-06-18'), e:new Date('2026-06-21') },
+    { key:'open',    s:new Date('2026-07-16'), e:new Date('2026-07-19') },
+    { key:'fedex',   s:new Date('2026-08-13'), e:new Date('2026-08-30') }
+  ];
+  for (var i = 0; i < ev.length; i++) {
+    if (today >= ev[i].s && today <= ev[i].e) return ev[i].key;
+    var prev = i === 0 ? new Date('2025-11-01') : ev[i-1].e;
+    var mid  = new Date((prev.getTime() + ev[i].s.getTime()) / 2);
+    if (today >= mid && today < ev[i].s) return ev[i].key;
+  }
+  return today > new Date('2026-08-30') ? 'def' : 'masters';
+}
+
+applyTheme(detectTheme());
+
+// WATCH
+function shade(hex, amt) {
+  var n = parseInt(hex.replace('#',''), 16);
+  var r = Math.min(255, Math.max(0, (n >> 16) + amt));
+  var g = Math.min(255, Math.max(0, ((n >> 8) & 0xff) + amt));
+  var b = Math.min(255, Math.max(0, (n & 0xff) + amt));
+  return 'rgb(' + r + ',' + g + ',' + b + ')';
+}
+
+function drawWatch() {
+  var canvas = document.getElementById('watch-canvas');
+  if (!canvas) return;
+  var ctx = canvas.getContext('2d');
+  var now = new Date();
+
+  // Canvas 80x80, center at (40,40) — all drawing from this exact point
+  var cx = 40, cy = 40;
+  var BO = 38; // bezel outer
+  var BI = 30; // bezel inner
+  var DR = 29; // dial
+
+  var bezel = window._bezel || '#c8102e';
+  var hand  = window._hand  || '#00264d';
+
+  ctx.clearRect(0, 0, 80, 80);
+
+  // Outer shadow ring
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = 5;
+  ctx.shadowOffsetY = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, BO, 0, Math.PI * 2);
+  ctx.fillStyle = shade(bezel, -50);
+  ctx.fill();
+  ctx.restore();
+
+  // Ribbed bezel — 60 alternating light/dark segments
+  for (var i = 0; i < 60; i++) {
+    var a1 = (i / 60) * Math.PI * 2 - Math.PI / 2;
+    var a2 = ((i + 0.58) / 60) * Math.PI * 2 - Math.PI / 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, BO, a1, a2);
+    ctx.arc(cx, cy, BI, a2, a1, true);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 === 0 ? bezel : shade(bezel, -45);
+    ctx.fill();
+  }
+
+  // Bezel outer rim
+  ctx.beginPath();
+  ctx.arc(cx, cy, BO, 0, Math.PI * 2);
+  ctx.strokeStyle = shade(bezel, -70);
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  // Bezel inner lip
+  ctx.beginPath();
+  ctx.arc(cx, cy, BI, 0, Math.PI * 2);
+  ctx.strokeStyle = shade(bezel, -55);
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  // White dial fill
+  ctx.beginPath();
+  ctx.arc(cx, cy, DR, 0, Math.PI * 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+
+  // Dial edge
+  ctx.beginPath();
+  ctx.arc(cx, cy, DR, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+  ctx.lineWidth = 0.8;
+  ctx.stroke();
+
+  // Hour markers
+  for (var j = 0; j < 12; j++) {
+    var ang = (j / 12) * Math.PI * 2 - Math.PI / 2;
+    var isQ = j % 3 === 0;
+    ctx.beginPath();
+    ctx.moveTo(cx + Math.cos(ang) * (DR - (isQ ? 6 : 4)), cy + Math.sin(ang) * (DR - (isQ ? 6 : 4)));
+    ctx.lineTo(cx + Math.cos(ang) * (DR - 1),              cy + Math.sin(ang) * (DR - 1));
+    ctx.strokeStyle = isQ ? hand : hand + '99';
+    ctx.lineWidth   = isQ ? 2 : 1;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+  }
+
+  var hrs  = now.getHours() % 12;
+  var mins = now.getMinutes();
+  var secs = now.getSeconds();
+  var ms   = now.getMilliseconds();
+
+  // Hour hand
+  var ha = ((hrs + mins / 60) / 12) * Math.PI * 2 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - Math.cos(ha) * 4, cy - Math.sin(ha) * 4);
+  ctx.lineTo(cx + Math.cos(ha) * 14, cy + Math.sin(ha) * 14);
+  ctx.strokeStyle = hand; ctx.lineWidth = 2.8; ctx.lineCap = 'round'; ctx.stroke();
+
+  // Minute hand
+  var ma = ((mins + secs / 60) / 60) * Math.PI * 2 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - Math.cos(ma) * 4, cy - Math.sin(ma) * 4);
+  ctx.lineTo(cx + Math.cos(ma) * 21, cy + Math.sin(ma) * 21);
+  ctx.strokeStyle = hand; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
+
+  // Second hand
+  var sa = ((secs + ms / 1000) / 60) * Math.PI * 2 - Math.PI / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - Math.cos(sa) * 6, cy - Math.sin(sa) * 6);
+  ctx.lineTo(cx + Math.cos(sa) * 23, cy + Math.sin(sa) * 23);
+  ctx.strokeStyle = bezel; ctx.lineWidth = 1; ctx.lineCap = 'round'; ctx.stroke();
+
+  // Center cap
+  ctx.beginPath(); ctx.arc(cx, cy, 2.8, 0, Math.PI * 2); ctx.fillStyle = hand; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 1.2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+
+  // Digital readout
+  var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var h = now.getHours();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12 || 12;
+  var m = String(now.getMinutes()).padStart(2,'0');
+  var s = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock-time').textContent = h + ':' + m + ':' + s + ' ' + ampm;
+  document.getElementById('clock-date').textContent = days[now.getDay()] + '  ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+}
+
+drawWatch();
+setInterval(drawWatch, 50);
+</script>
+</body>
+</html>
