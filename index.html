@@ -56,7 +56,6 @@
     transition: color 0.2s, border-color 0.2s;
     text-transform: uppercase;
   }
-  .season-tab:hover { color: rgba(255,255,255,0.8); }
   .season-tab.active { color: #fff; border-bottom-color: var(--pga-red); }
 
   main { max-width: 1100px; margin: 0 auto; padding: 40px 24px 80px; }
@@ -355,6 +354,7 @@
     </div>
   </section>
 
+
 </main>
 <footer>© 2026 Oak Street Auctions · PGA Calcutta Series</footer>
 
@@ -379,59 +379,61 @@ var t26 = [
   { id:'masters', name:'The Masters',        venue:'Augusta National', group:'majors',
     start:'2026-04-09', end:'2026-04-12', auctionDate:'Apr 8 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=masters',
-    sheet:'YOUR_MASTERS_2026_SHEET_LINK',
+    sheet:'https://docs.google.com/spreadsheets/d/184pEt-wWzAykdvkcv92_LpRnrMw3yWwq3duBVsP86i0/preview',
     bg:'#006747', border:'#FFCD00', pillBg:'#006747', pillBorder:'#FFCD00', pillColor:'#FFCD00', nameColor:'#fff' },
   { id:'pga', name:'PGA Championship',       venue:'Aronimink GC',    group:'majors',
     start:'2026-05-14', end:'2026-05-17', auctionDate:'May 13 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=pga-championship',
-    sheet:'YOUR_PGA_2026_SHEET_LINK',
+    sheet:'https://docs.google.com/spreadsheets/d/11FI-emtg6Fb9Rn14VozK1n2RQRX2AjEk4x4GAJLwPDY/preview',
     bg:'#00205B', border:'#ffffff', pillBg:'#00205B', pillBorder:'#fff', pillColor:'#fff', nameColor:'#fff' },
   { id:'usopen', name:'U.S. Open',           venue:'Oakmont CC',      group:'majors',
     start:'2026-06-18', end:'2026-06-21', auctionDate:'Jun 17 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=us-open',
-    sheet:'YOUR_USOPEN_2026_SHEET_LINK',
+    sheet:'https://docs.google.com/spreadsheets/d/12LOpGMfFtdfluiI6OM-zimcLYHGhXbrIsCEhk8PQjhc/preview',
     bg:'#00365F', border:'#BF0D3E', pillBg:'#BF0D3E', pillBorder:null, pillColor:'#fff', nameColor:'#fff' },
   { id:'open', name:'The Open Championship', venue:'Royal Troon',     group:'majors',
     start:'2026-07-16', end:'2026-07-19', auctionDate:'Jul 15 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=the-open',
-    sheet:'YOUR_OPEN_2026_SHEET_LINK',
+    sheet:'https://docs.google.com/spreadsheets/d/1phyCLPpp9VGoaDEQfn3zvspC9Gzt3lVRojrwFrF6KeQ/preview',
     bg:'#F0C020', border:'#1B2D5B', pillBg:'#1B2D5B', pillBorder:null, pillColor:'#F0C020', nameColor:'#1B2D5B' },
   { id:'fedex', name:'FedEx Cup Playoffs',   venue:'3 Tournaments',    group:'fedex',
     start:'2026-08-13', end:'2026-08-30', auctionDate:'Aug 12 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/tours/pga-tour/projected-standings',
-    sheet:'YOUR_FEDEX_2026_SHEET_LINK',
+    sheet:'https://docs.google.com/spreadsheets/d/1jjxERvA3xroqIkgrHEn0A4uFXvUBXNT-TumNYbEjXrI/preview',
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
 function build2026() {
   var today = new Date(); today.setHours(0,0,0,0);
   t26.forEach(function(t) {
-    var start = new Date(t.start); start.setHours(0,0,0,0);
-    var end   = new Date(t.end);   end.setHours(23,59,59,999);
-    var live     = today >= start && today <= end;
-    var final    = today > end;
-    var upcoming = today < start;
-    var hasSheet = t.sheet.indexOf('YOUR_') !== 0;
+    var start     = new Date(t.start); start.setHours(0,0,0,0);
+    var end       = new Date(t.end);   end.setHours(23,59,59,999);
+    var auctionDay = new Date(start); auctionDay.setDate(auctionDay.getDate() - 1);
+    var live       = today >= start && today <= end;
+    var final      = today > end;
+    var auction    = today.getTime() === auctionDay.getTime();
+    var upcoming   = today < start;
+    var hasSheet   = t.sheet.indexOf('YOUR_') !== 0;
 
-    var pillLabel, pillStyle, pillClass = 'card-pill';
+    var pillsHtml, pillClass = 'card-pill';
     if (live) {
-      pillLabel = 'Live · Tracker';
-      pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
-      pillClass += ' live-badge';
+      pillsHtml = '<span class="card-pill live-badge" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">● Live · Sheet</span>';
+    } else if (auction && hasSheet) {
+      pillsHtml =
+        '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Field</span>' +
+        '<a href="' + t.sheet + '" target="_blank" class="card-pill" style="margin-left:5px;background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">Sheet</a>';
     } else if (final) {
-      pillLabel = 'Results';
-      pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
+      pillsHtml = '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Results</span>';
     } else {
-      pillLabel = 'Field';
-      pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
+      pillsHtml = '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Field</span>';
     }
 
-    var href = upcoming ? t.fieldUrl : (hasSheet ? t.sheet : '#');
-    var clickable = upcoming || (hasSheet && (live || final));
+    var href = live ? t.sheet : (auction ? t.fieldUrl : (upcoming ? t.fieldUrl : (hasSheet ? t.sheet : '#')));
+    var clickable = (upcoming || auction) || (hasSheet && (live || final));
 
-    var footerHtml = upcoming
+    var footerHtml = (upcoming || auction)
       ? '<span style="color:var(--text-mid);font-size:11px;font-weight:500;white-space:nowrap">Auction: ' + t.auctionDate + '</span>'
-      : (live ? 'View Tracker ' + arrow() : 'View Results ' + arrow());
+      : (live ? 'View Sheet ' + arrow() : 'View Results ' + arrow());
 
     var card = document.createElement('div');
     card.className = 't-card';
@@ -442,10 +444,10 @@ function build2026() {
     card.innerHTML =
       '<div class="card-top" style="background:' + t.bg + ';border-bottom-color:' + t.border + '">' +
         '<div class="card-event" style="color:' + t.nameColor + '">' + t.name + '</div>' +
-        '<span class="' + pillClass + '" style="' + pillStyle + '">' + pillLabel + '</span>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">' + pillsHtml + '</div>' +
       '</div>' +
       '<div class="card-body">' +
-        (upcoming ? '' : '<div class="card-stat"><span>Participants</span><strong>—</strong></div>') +
+        (upcoming || auction ? '' : '<div class="card-stat"><span>Participants</span><strong>—</strong></div>') +
         '<div class="card-stat"><span>' + t.venue + '</span></div>' +
       '</div>' +
       '<div class="card-footer">' + footerHtml + '</div>';
