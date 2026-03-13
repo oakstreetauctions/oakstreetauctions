@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Oak Street Auctions">
+<meta name="theme-color" content="#00162e">
 <title>Oak Street Auctions · PGA Calcutta Series</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -34,7 +38,7 @@
 
   .clock-widget { display: flex; align-items: center; gap: 12px; }
   .watch-face { width: 80px; height: 80px; flex-shrink: 0; }
-  #watch-canvas { display: block; }
+  #watch-canvas { display: block; width: 80px; height: 80px; }
   #clock-time { font-size: 13px; font-weight: 600; color: var(--pga-red); letter-spacing: 0.04em; font-variant-numeric: tabular-nums; display: block; transition: color 0.6s; }
   #clock-date { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.06em; display: block; }
 
@@ -65,7 +69,8 @@
     border-bottom: 1px solid var(--pga-border);
   }
   .group-label:first-child { margin-top: 0; }
-  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+  .cards-grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; }
+  .cards-grid .t-card { flex: 0 1 210px; min-width: 170px; }
 
   .t-card {
     background: #fff; border: 1px solid var(--pga-border);
@@ -97,6 +102,51 @@
   .card-footer:hover { color: var(--text-dark); }
 
   footer { text-align: center; padding: 28px; font-size: 12px; color: var(--text-mid); border-top: 1px solid var(--pga-border); }
+
+  .hero {
+    background: var(--pga-dark);
+    padding: 44px 32px 40px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    transition: background 0.6s;
+  }
+  .hero-eyebrow {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--pga-red);
+    display: block; margin-bottom: 14px;
+    transition: color 0.6s;
+  }
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 600;
+    color: #fff;
+    letter-spacing: 0.01em;
+    line-height: 1.1;
+    margin-bottom: 20px;
+  }
+  .hero-divider {
+    width: 32px; height: 2px;
+    background: var(--pga-red);
+    margin: 0 auto;
+    border-radius: 1px;
+    transition: background 0.6s;
+  }
+
+  @media (max-width: 600px) {
+    .site-header { padding: 0 16px; height: 72px; }
+    .season-nav { top: 72px; }
+    .logo-name { font-size: 16px; }
+    .watch-face { width: 60px; height: 60px; }
+    #watch-canvas { width: 60px !important; height: 60px !important; }
+    #clock-date { display: none; }
+    main { padding: 24px 16px 60px; }
+    .hero { padding: 36px 20px 32px; }
+    .cards-grid { gap: 12px; }
+    .cards-grid .t-card { flex: 0 1 155px; min-width: 140px; }
+    .t-card { -webkit-tap-highlight-color: transparent; }
+    .season-tab { padding: 12px 16px; font-size: 12px; }
+  }
 </style>
 </head>
 <body>
@@ -109,21 +159,19 @@
       <polygon id="logo-flag" points="21.5,10 34,16 21.5,22" fill="#c8102e"/>
       <ellipse cx="22" cy="34" rx="7" ry="2" fill="rgba(255,255,255,0.15)"/>
     </svg>
-    <div>
-      <span class="logo-name">Oak Street Auctions</span>
-      <span class="logo-sub">PGA Calcutta Series</span>
-    </div>
+
   </a>
   <div class="clock-widget">
     <div class="watch-face">
-      <canvas id="watch-canvas" width="80" height="80"></canvas>
-    </div>
-    <div>
-      <span id="clock-time">12:00:00 PM</span>
-      <span id="clock-date">Loading...</span>
+      <canvas id="watch-canvas" width="160" height="160" style="width:80px;height:80px"></canvas>
     </div>
   </div>
 </header>
+
+<div class="hero">
+  <div class="hero-title">Oak Street Auctions</div>
+  <div class="hero-divider"></div>
+</div>
 
 <nav class="season-nav">
   <button class="season-tab active" data-season="2026">2026</button>
@@ -348,7 +396,7 @@ var t26 = [
     fieldUrl:'https://datagolf.com/major-fields?major=the-open',
     sheet:'YOUR_OPEN_2026_SHEET_LINK',
     bg:'#F0C020', border:'#1B2D5B', pillBg:'#1B2D5B', pillBorder:null, pillColor:'#F0C020', nameColor:'#1B2D5B' },
-  { id:'fedex', name:'FedEx Cup Playoffs',   venue:'TBD',             group:'fedex',
+  { id:'fedex', name:'FedEx Cup Playoffs',   venue:'3 Tournaments',    group:'fedex',
     start:'2026-08-13', end:'2026-08-30', auctionDate:'Aug 12 · 6:30 PM',
     fieldUrl:'https://datagolf.com/tours/pga-tour/projected-standings',
     sheet:'YOUR_FEDEX_2026_SHEET_LINK',
@@ -375,7 +423,7 @@ function build2026() {
       pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
     } else {
       pillLabel = 'Field';
-      pillStyle = 'background:transparent;border:1px solid rgba(255,255,255,0.4);color:rgba(255,255,255,0.75);';
+      pillStyle = 'background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';';
     }
 
     var href = upcoming ? t.fieldUrl : (hasSheet ? t.sheet : '#');
@@ -397,7 +445,7 @@ function build2026() {
         '<span class="' + pillClass + '" style="' + pillStyle + '">' + pillLabel + '</span>' +
       '</div>' +
       '<div class="card-body">' +
-        '<div class="card-stat"><span>Participants</span><strong>—</strong></div>' +
+        (upcoming ? '' : '<div class="card-stat"><span>Participants</span><strong>—</strong></div>') +
         '<div class="card-stat"><span>' + t.venue + '</span></div>' +
       '</div>' +
       '<div class="card-footer">' + footerHtml + '</div>';
@@ -414,7 +462,7 @@ var themes = {
   usopen:  { dark:'#001e35', mid:'#00365F', red:'#BF0D3E', logo:'#BF0D3E', bezel:'#BF0D3E', hand:'#00365F' },
   open:    { dark:'#8a6d00', mid:'#b38f00', red:'#1B2D5B', logo:'#1B2D5B', bezel:'#F0C020', hand:'#1B2D5B' },
   fedex:   { dark:'#2a0a52', mid:'#4D148C', red:'#FF6600', logo:'#FF6600', bezel:'#FF6600', hand:'#4D148C' },
-  def:     { dark:'#00162e', mid:'#00264d', red:'#c8102e', logo:'#c8102e', bezel:'#c8102e', hand:'#00264d' }
+  def:     { dark:'#001a3a', mid:'#00205B', red:'#C8A84B', logo:'#C8A84B', bezel:'#C8A84B', hand:'#00205B' }
 };
 
 function applyTheme(key) {
@@ -425,26 +473,31 @@ function applyTheme(key) {
   s.setProperty('--pga-red',  t.red);
   var flag = document.getElementById('logo-flag');
   if (flag) flag.setAttribute('fill', t.logo);
+  var divider = document.querySelector('.hero-divider');
+  if (divider) divider.style.background = t.red;
   window._bezel = t.bezel;
   window._hand  = t.hand;
 }
 
 function detectTheme() {
   var today = new Date(); today.setHours(0,0,0,0);
-  var ev = [
-    { key:'masters', s:new Date('2026-04-09'), e:new Date('2026-04-12') },
-    { key:'pga',     s:new Date('2026-05-14'), e:new Date('2026-05-17') },
-    { key:'usopen',  s:new Date('2026-06-18'), e:new Date('2026-06-21') },
-    { key:'open',    s:new Date('2026-07-16'), e:new Date('2026-07-19') },
-    { key:'fedex',   s:new Date('2026-08-13'), e:new Date('2026-08-30') }
-  ];
-  for (var i = 0; i < ev.length; i++) {
-    if (today >= ev[i].s && today <= ev[i].e) return ev[i].key;
-    var prev = i === 0 ? new Date('2025-11-01') : ev[i-1].e;
-    var mid  = new Date((prev.getTime() + ev[i].s.getTime()) / 2);
-    if (today >= mid && today < ev[i].s) return ev[i].key;
-  }
-  return today > new Date('2026-08-30') ? 'def' : 'masters';
+  var yr = today.getFullYear();
+
+  // Theme windows: start = Mar 15, end = event end + 7 days
+  // After fedex+7 through Mar 14 next year = Players/default theme
+  var mar15  = new Date(yr, 2, 15);   // March 15
+  var masEnd = new Date(yr, 3, 19);   // Masters end Apr 12 + 7 = Apr 19
+  var pgaEnd = new Date(yr, 4, 24);   // PGA end May 17 + 7 = May 24
+  var usoEnd = new Date(yr, 5, 28);   // US Open end Jun 21 + 7 = Jun 28
+  var opnEnd = new Date(yr, 6, 26);   // The Open end Jul 19 + 7 = Jul 26
+  var fdxEnd = new Date(yr, 8, 6);    // FedEx end Aug 30 + 7 = Sep 6
+
+  if (today >= mar15  && today <= masEnd) return 'masters';
+  if (today >  masEnd && today <= pgaEnd) return 'pga';
+  if (today >  pgaEnd && today <= usoEnd) return 'usopen';
+  if (today >  usoEnd && today <= opnEnd) return 'open';
+  if (today >  opnEnd && today <= fdxEnd) return 'fedex';
+  return 'def'; // Players theme: Sep 7 – Mar 14
 }
 
 applyTheme(detectTheme());
@@ -464,16 +517,16 @@ function drawWatch() {
   var ctx = canvas.getContext('2d');
   var now = new Date();
 
-  // Canvas 80x80, center at (40,40) — all drawing from this exact point
-  var cx = 40, cy = 40;
-  var BO = 38; // bezel outer
-  var BI = 30; // bezel inner
-  var DR = 29; // dial
+  // Canvas 160x160 (2x retina), displayed at 80x80 — crisp on all screens
+  var cx = 80, cy = 80;
+  var BO = 76; // bezel outer
+  var BI = 60; // bezel inner
+  var DR = 58; // dial
 
   var bezel = window._bezel || '#c8102e';
   var hand  = window._hand  || '#00264d';
 
-  ctx.clearRect(0, 0, 80, 80);
+  ctx.clearRect(0, 0, 160, 160);
 
   // Outer shadow ring
   ctx.save();
@@ -502,14 +555,14 @@ function drawWatch() {
   ctx.beginPath();
   ctx.arc(cx, cy, BO, 0, Math.PI * 2);
   ctx.strokeStyle = shade(bezel, -70);
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 2;
   ctx.stroke();
 
   // Bezel inner lip
   ctx.beginPath();
   ctx.arc(cx, cy, BI, 0, Math.PI * 2);
   ctx.strokeStyle = shade(bezel, -55);
-  ctx.lineWidth = 0.8;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
   // White dial fill
@@ -522,7 +575,7 @@ function drawWatch() {
   ctx.beginPath();
   ctx.arc(cx, cy, DR, 0, Math.PI * 2);
   ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-  ctx.lineWidth = 0.8;
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
   // Hour markers
@@ -530,10 +583,10 @@ function drawWatch() {
     var ang = (j / 12) * Math.PI * 2 - Math.PI / 2;
     var isQ = j % 3 === 0;
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(ang) * (DR - (isQ ? 6 : 4)), cy + Math.sin(ang) * (DR - (isQ ? 6 : 4)));
-    ctx.lineTo(cx + Math.cos(ang) * (DR - 1),              cy + Math.sin(ang) * (DR - 1));
+    ctx.moveTo(cx + Math.cos(ang) * (DR - (isQ ? 12 : 8)), cy + Math.sin(ang) * (DR - (isQ ? 12 : 8)));
+    ctx.lineTo(cx + Math.cos(ang) * (DR - 2),              cy + Math.sin(ang) * (DR - 2));
     ctx.strokeStyle = isQ ? hand : hand + '99';
-    ctx.lineWidth   = isQ ? 2 : 1;
+    ctx.lineWidth   = isQ ? 4 : 2;
     ctx.lineCap = 'round';
     ctx.stroke();
   }
@@ -546,27 +599,27 @@ function drawWatch() {
   // Hour hand
   var ha = ((hrs + mins / 60) / 12) * Math.PI * 2 - Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(cx - Math.cos(ha) * 4, cy - Math.sin(ha) * 4);
-  ctx.lineTo(cx + Math.cos(ha) * 14, cy + Math.sin(ha) * 14);
-  ctx.strokeStyle = hand; ctx.lineWidth = 2.8; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.moveTo(cx - Math.cos(ha) * 8, cy - Math.sin(ha) * 8);
+  ctx.lineTo(cx + Math.cos(ha) * 28, cy + Math.sin(ha) * 28);
+  ctx.strokeStyle = hand; ctx.lineWidth = 5.5; ctx.lineCap = 'round'; ctx.stroke();
 
   // Minute hand
   var ma = ((mins + secs / 60) / 60) * Math.PI * 2 - Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(cx - Math.cos(ma) * 4, cy - Math.sin(ma) * 4);
-  ctx.lineTo(cx + Math.cos(ma) * 21, cy + Math.sin(ma) * 21);
-  ctx.strokeStyle = hand; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.moveTo(cx - Math.cos(ma) * 8, cy - Math.sin(ma) * 8);
+  ctx.lineTo(cx + Math.cos(ma) * 42, cy + Math.sin(ma) * 42);
+  ctx.strokeStyle = hand; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke();
 
   // Second hand
   var sa = ((secs + ms / 1000) / 60) * Math.PI * 2 - Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(cx - Math.cos(sa) * 6, cy - Math.sin(sa) * 6);
-  ctx.lineTo(cx + Math.cos(sa) * 23, cy + Math.sin(sa) * 23);
-  ctx.strokeStyle = bezel; ctx.lineWidth = 1; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.moveTo(cx - Math.cos(sa) * 12, cy - Math.sin(sa) * 12);
+  ctx.lineTo(cx + Math.cos(sa) * 46, cy + Math.sin(sa) * 46);
+  ctx.strokeStyle = bezel; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
 
   // Center cap
-  ctx.beginPath(); ctx.arc(cx, cy, 2.8, 0, Math.PI * 2); ctx.fillStyle = hand; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy, 1.2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI * 2); ctx.fillStyle = hand; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
 
   // Digital readout
   var days   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
