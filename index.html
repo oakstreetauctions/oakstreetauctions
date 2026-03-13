@@ -377,27 +377,27 @@ function arrow() {
 // 2026 TOURNAMENTS
 var t26 = [
   { id:'masters', name:'The Masters',        venue:'Augusta National', group:'majors',
-    start:'2026-04-09', end:'2026-04-12', auctionDate:'Apr 8 · 6:30 PM',
+    start:'2026-04-09', end:'2026-04-12', auctionDate:'Apr 8 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=masters',
     sheet:'YOUR_MASTERS_2026_SHEET_LINK',
     bg:'#006747', border:'#FFCD00', pillBg:'#006747', pillBorder:'#FFCD00', pillColor:'#FFCD00', nameColor:'#fff' },
   { id:'pga', name:'PGA Championship',       venue:'Aronimink GC',    group:'majors',
-    start:'2026-05-14', end:'2026-05-17', auctionDate:'May 13 · 6:30 PM',
+    start:'2026-05-14', end:'2026-05-17', auctionDate:'May 13 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=pga-championship',
     sheet:'YOUR_PGA_2026_SHEET_LINK',
     bg:'#00205B', border:'#ffffff', pillBg:'#00205B', pillBorder:'#fff', pillColor:'#fff', nameColor:'#fff' },
   { id:'usopen', name:'U.S. Open',           venue:'Oakmont CC',      group:'majors',
-    start:'2026-06-18', end:'2026-06-21', auctionDate:'Jun 17 · 6:30 PM',
+    start:'2026-06-18', end:'2026-06-21', auctionDate:'Jun 17 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=us-open',
     sheet:'YOUR_USOPEN_2026_SHEET_LINK',
     bg:'#00365F', border:'#BF0D3E', pillBg:'#BF0D3E', pillBorder:null, pillColor:'#fff', nameColor:'#fff' },
   { id:'open', name:'The Open Championship', venue:'Royal Troon',     group:'majors',
-    start:'2026-07-16', end:'2026-07-19', auctionDate:'Jul 15 · 6:30 PM',
+    start:'2026-07-16', end:'2026-07-19', auctionDate:'Jul 15 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/major-fields?major=the-open',
     sheet:'YOUR_OPEN_2026_SHEET_LINK',
     bg:'#F0C020', border:'#1B2D5B', pillBg:'#1B2D5B', pillBorder:null, pillColor:'#F0C020', nameColor:'#1B2D5B' },
   { id:'fedex', name:'FedEx Cup Playoffs',   venue:'3 Tournaments',    group:'fedex',
-    start:'2026-08-13', end:'2026-08-30', auctionDate:'Aug 12 · 6:30 PM',
+    start:'2026-08-13', end:'2026-08-30', auctionDate:'Aug 12 &middot; 6:30&nbsp;PM',
     fieldUrl:'https://datagolf.com/tours/pga-tour/projected-standings',
     sheet:'YOUR_FEDEX_2026_SHEET_LINK',
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
@@ -430,7 +430,7 @@ function build2026() {
     var clickable = upcoming || (hasSheet && (live || final));
 
     var footerHtml = upcoming
-      ? '<span style="color:var(--text-mid);font-size:11px;font-weight:500">Auction: ' + t.auctionDate + '</span>'
+      ? '<span style="color:var(--text-mid);font-size:11px;font-weight:500;white-space:nowrap">Auction: ' + t.auctionDate + '</span>'
       : (live ? 'View Tracker ' + arrow() : 'View Results ' + arrow());
 
     var card = document.createElement('div');
