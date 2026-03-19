@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#00162e">
 <title>Oak Street Auctions · PGA Calcutta Series</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600&family=DM+Sans:wght@300;400;500;600&family=GFS+Didot:ital@1&family=Raleway:wght@800&family=Oswald:wght@700&family=Playfair+Display:wght@800&family=Jost:wght@800&display=swap" rel="stylesheet">
 <style>
   :root {
     --pga-dark:   #00162e;
@@ -459,12 +459,12 @@ build2026();
 
 // THEMES
 var themes = {
-  masters: { dark:'#003d22', mid:'#005a32', red:'#FFCD00', logo:'#FFCD00', bezel:'#FFCD00', hand:'#006747' },
-  pga:     { dark:'#00132e', mid:'#00205B', red:'#ffffff', logo:'#ffffff', bezel:'#00205B', hand:'#ffffff' },
-  usopen:  { dark:'#001e35', mid:'#00365F', red:'#BF0D3E', logo:'#BF0D3E', bezel:'#BF0D3E', hand:'#00365F' },
-  open:    { dark:'#8a6d00', mid:'#b38f00', red:'#1B2D5B', logo:'#1B2D5B', bezel:'#F0C020', hand:'#1B2D5B' },
-  fedex:   { dark:'#2a0a52', mid:'#4D148C', red:'#FF6600', logo:'#FF6600', bezel:'#FF6600', hand:'#4D148C' },
-  def:     { dark:'#001a3a', mid:'#00205B', red:'#C8A84B', logo:'#C8A84B', bezel:'#C8A84B', hand:'#00205B' }
+  masters: { dark:'#003d22', mid:'#005a32', red:'#FFCD00', logo:'#FFCD00', bezel:'#FFCD00', hand:'#006747', font:"'GFS Didot',serif", fontStyle:'italic', fontWeight:'400', letterSpacing:'0.02em', textTransform:'none' },
+  pga:     { dark:'#00132e', mid:'#00205B', red:'#ffffff', logo:'#ffffff', bezel:'#00205B', hand:'#ffffff', font:"'Raleway',sans-serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.05em', textTransform:'none' },
+  usopen:  { dark:'#001e35', mid:'#00365F', red:'#BF0D3E', logo:'#BF0D3E', bezel:'#BF0D3E', hand:'#00365F', font:"'Oswald',sans-serif", fontStyle:'normal', fontWeight:'700', letterSpacing:'0.12em', textTransform:'uppercase' },
+  open:    { dark:'#8a6d00', mid:'#b38f00', red:'#1B2D5B', logo:'#1B2D5B', bezel:'#F0C020', hand:'#1B2D5B', font:"'Playfair Display',serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.01em', textTransform:'none' },
+  fedex:   { dark:'#2a0a52', mid:'#4D148C', red:'#FF6600', logo:'#FF6600', bezel:'#FF6600', hand:'#4D148C', font:"'Jost',sans-serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.08em', textTransform:'none' },
+  def:     { dark:'#001a3a', mid:'#00205B', red:'#C8A84B', logo:'#C8A84B', bezel:'#C8A84B', hand:'#00205B', font:"'Cormorant Garamond',serif", fontStyle:'normal', fontWeight:'600', letterSpacing:'0.01em', textTransform:'none' }
 };
 
 function applyTheme(key) {
@@ -477,6 +477,14 @@ function applyTheme(key) {
   if (flag) flag.setAttribute('fill', t.logo);
   var divider = document.querySelector('.hero-divider');
   if (divider) divider.style.background = t.red;
+  var heroTitle = document.querySelector('.hero-title');
+  if (heroTitle) {
+    heroTitle.style.fontFamily    = t.font;
+    heroTitle.style.fontStyle     = t.fontStyle;
+    heroTitle.style.fontWeight    = t.fontWeight;
+    heroTitle.style.letterSpacing = t.letterSpacing;
+    heroTitle.style.textTransform = t.textTransform;
+  }
   window._bezel = t.bezel;
   window._hand  = t.hand;
 }
