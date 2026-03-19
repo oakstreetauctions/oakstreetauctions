@@ -116,10 +116,13 @@
     transition: color 0.6s;
   }
   .hero-title {
+    font-family: var(--hero-font, 'Cormorant Garamond', serif);
+    font-style: var(--hero-style, normal);
+    font-weight: var(--hero-weight, 600);
+    letter-spacing: var(--hero-spacing, 0.01em);
+    text-transform: var(--hero-transform, none);
     font-size: clamp(32px, 6vw, 52px);
-    font-weight: 600;
     color: #fff;
-    letter-spacing: 0.01em;
     line-height: 1.1;
     margin-bottom: 20px;
   }
@@ -472,18 +475,15 @@ function applyTheme(key) {
   s.setProperty('--pga-dark', t.dark);
   s.setProperty('--pga-mid',  t.mid);
   s.setProperty('--pga-red',  t.red);
+  s.setProperty('--hero-font', t.font);
+  s.setProperty('--hero-style', t.fontStyle);
+  s.setProperty('--hero-weight', t.fontWeight);
+  s.setProperty('--hero-spacing', t.letterSpacing);
+  s.setProperty('--hero-transform', t.textTransform);
   var flag = document.getElementById('logo-flag');
   if (flag) flag.setAttribute('fill', t.logo);
   var divider = document.querySelector('.hero-divider');
   if (divider) divider.style.background = t.red;
-  var heroTitle = document.querySelector('.hero-title');
-  if (heroTitle) {
-    heroTitle.style.fontFamily    = t.font;
-    heroTitle.style.fontStyle     = t.fontStyle;
-    heroTitle.style.fontWeight    = t.fontWeight;
-    heroTitle.style.letterSpacing = t.letterSpacing;
-    heroTitle.style.textTransform = t.textTransform;
-  }
   window._bezel = t.bezel;
   window._hand  = t.hand;
 }
@@ -511,7 +511,6 @@ function detectTheme() {
 
 var _themeKey = detectTheme();
 applyTheme(_themeKey);
-window.addEventListener('load', function() { applyTheme(_themeKey); });
 
 // WATCH
 function shade(hex, amt) {
