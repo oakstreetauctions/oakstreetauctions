@@ -510,7 +510,9 @@ function detectTheme() {
   return 'def'; // Players theme: Sep 7 – Mar 14
 }
 
-applyTheme(detectTheme());
+var _themeKey = detectTheme();
+applyTheme(_themeKey);
+window.addEventListener('load', function() { applyTheme(_themeKey); });
 
 // WATCH
 function shade(hex, amt) {
