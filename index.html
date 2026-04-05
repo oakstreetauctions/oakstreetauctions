@@ -164,7 +164,7 @@
   </a>
   <div class="clock-widget">
     <div class="watch-face">
-      <canvas id="watch-canvas" width="160" height="160" style="width:80px;height:80px"></canvas>
+      <canvas id="watch-canvas" width="240" height="240" style="width:80px;height:80px"></canvas>
     </div>
   </div>
 </header>
@@ -463,12 +463,12 @@ build2026();
 
 // THEMES
 var themes = {
-  masters: { dark:'#003d22', mid:'#005a32', red:'#FFCD00', logo:'#FFCD00', bezel:'#FFCD00', hand:'#006747', font:"'GFS Didot',serif", fontStyle:'italic', fontWeight:'400', letterSpacing:'0.02em', textTransform:'none' },
-  pga:     { dark:'#00132e', mid:'#00205B', red:'#ffffff', logo:'#ffffff', bezel:'#00205B', hand:'#ffffff', font:"'Raleway',sans-serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.05em', textTransform:'none' },
-  usopen:  { dark:'#001e35', mid:'#00365F', red:'#BF0D3E', logo:'#BF0D3E', bezel:'#BF0D3E', hand:'#00365F', font:"'Oswald',sans-serif", fontStyle:'normal', fontWeight:'700', letterSpacing:'0.12em', textTransform:'uppercase' },
-  open:    { dark:'#8a6d00', mid:'#b38f00', red:'#1B2D5B', logo:'#1B2D5B', bezel:'#F0C020', hand:'#1B2D5B', font:"'Playfair Display',serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.01em', textTransform:'none' },
-  fedex:   { dark:'#2a0a52', mid:'#4D148C', red:'#FF6600', logo:'#FF6600', bezel:'#FF6600', hand:'#4D148C', font:"'Jost',sans-serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.08em', textTransform:'none' },
-  def:     { dark:'#001a3a', mid:'#00205B', red:'#C8A84B', logo:'#C8A84B', bezel:'#C8A84B', hand:'#00205B', font:"'Cormorant Garamond',serif", fontStyle:'normal', fontWeight:'600', letterSpacing:'0.01em', textTransform:'none' }
+  masters: { dark:'#003d22', mid:'#005a32', red:'#FFCD00', logo:'#FFCD00', bezel:'#FFCD00', hand:'#006747', dial:'#ffffff', font:"'GFS Didot',serif", fontStyle:'italic', fontWeight:'400', letterSpacing:'0.02em', textTransform:'none' },
+  pga:     { dark:'#00132e', mid:'#00205B', red:'#ffffff', logo:'#ffffff', bezel:'#ffffff', hand:'#ffffff', dial:'#00205B', font:"'Raleway',sans-serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.05em', textTransform:'none' },
+  usopen:  { dark:'#001e35', mid:'#00365F', red:'#BF0D3E', logo:'#BF0D3E', bezel:'#BF0D3E', hand:'#00365F', dial:'#ffffff', font:"'Oswald',sans-serif", fontStyle:'normal', fontWeight:'700', letterSpacing:'0.12em', textTransform:'uppercase' },
+  open:    { dark:'#8a6d00', mid:'#b38f00', red:'#1B2D5B', logo:'#1B2D5B', bezel:'#F0C020', hand:'#1B2D5B', dial:'#ffffff', font:"'Playfair Display',serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.01em', textTransform:'none' },
+  fedex:   { dark:'#2a0a52', mid:'#4D148C', red:'#FF6600', logo:'#FF6600', bezel:'#FF6600', hand:'#4D148C', dial:'#ffffff', font:"'Jost',sans-serif", fontStyle:'normal', fontWeight:'800', letterSpacing:'0.08em', textTransform:'none' },
+  def:     { dark:'#001a3a', mid:'#00205B', red:'#C8A84B', logo:'#C8A84B', bezel:'#C8A84B', hand:'#00205B', dial:'#ffffff', font:"'Cormorant Garamond',serif", fontStyle:'normal', fontWeight:'600', letterSpacing:'0.01em', textTransform:'none' }
 };
 
 function applyTheme(key) {
@@ -488,6 +488,7 @@ function applyTheme(key) {
   if (divider) divider.style.background = t.red;
   window._bezel = t.bezel;
   window._hand  = t.hand;
+  window._dial  = t.dial || '#ffffff';
 }
 
 function detectTheme() {
@@ -529,58 +530,97 @@ function drawWatch() {
   var ctx = canvas.getContext('2d');
   var now = new Date();
 
-  // Canvas 160x160 (2x retina), displayed at 80x80 — crisp on all screens
-  var cx = 80, cy = 80;
-  var BO = 76; // bezel outer
-  var BI = 60; // bezel inner
-  var DR = 58; // dial
+  // Canvas 240x240 (3x retina), displayed at 80x80 — crisp on all screens
+  var cx = 120, cy = 120;
+  var BO = 114; // bezel outer
+  var BI = 90;  // bezel inner
+  var DR = 87;  // dial
 
   var bezel = window._bezel || '#c8102e';
   var hand  = window._hand  || '#00264d';
+  var dial  = window._dial  || '#ffffff';
 
-  ctx.clearRect(0, 0, 160, 160);
+  ctx.clearRect(0, 0, 240, 240);
 
-  // Outer shadow ring
+  // Outer case shadow
   ctx.save();
-  ctx.shadowColor = 'rgba(0,0,0,0.35)';
-  ctx.shadowBlur = 5;
-  ctx.shadowOffsetY = 2;
+  ctx.shadowColor = 'rgba(0,0,0,0.5)';
+  ctx.shadowBlur = 8;
+  ctx.shadowOffsetY = 3;
   ctx.beginPath();
-  ctx.arc(cx, cy, BO, 0, Math.PI * 2);
-  ctx.fillStyle = shade(bezel, -50);
+  ctx.arc(cx, cy, BO + 2, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a1a1a';
   ctx.fill();
   ctx.restore();
 
-  // Ribbed bezel — 60 alternating light/dark segments
-  for (var i = 0; i < 60; i++) {
-    var a1 = (i / 60) * Math.PI * 2 - Math.PI / 2;
-    var a2 = ((i + 0.58) / 60) * Math.PI * 2 - Math.PI / 2;
+  // Metallic outer case ring
+  var caseGrad = ctx.createRadialGradient(cx - 20, cy - 20, 30, cx, cy, BO + 2);
+  caseGrad.addColorStop(0,   '#e8e8e8');
+  caseGrad.addColorStop(0.3, '#b0b0b0');
+  caseGrad.addColorStop(0.5, '#f5f5f5');
+  caseGrad.addColorStop(0.7, '#888');
+  caseGrad.addColorStop(1,   '#c0c0c0');
+  ctx.beginPath();
+  ctx.arc(cx, cy, BO + 2, 0, Math.PI * 2);
+  ctx.fillStyle = caseGrad;
+  ctx.fill();
+
+  // Colored bezel base
+  ctx.beginPath();
+  ctx.arc(cx, cy, BO, 0, Math.PI * 2);
+  ctx.fillStyle = bezel;
+  ctx.fill();
+
+  // Metallic sheen overlay on bezel — polished alternating segments
+  var segs = 120;
+  for (var i = 0; i < segs; i++) {
+    var a1 = (i / segs) * Math.PI * 2 - Math.PI / 2;
+    var a2 = ((i + 0.55) / segs) * Math.PI * 2 - Math.PI / 2;
+    var aMid = (a1 + a2) / 2;
+    var px = cx + Math.cos(aMid) * ((BO + BI) / 2);
+    var py = cy + Math.sin(aMid) * ((BO + BI) / 2);
+    var segGrad = ctx.createRadialGradient(px, py, 0, px, py, (BO - BI));
+    var bright = i % 2 === 0;
+    segGrad.addColorStop(0,   bright ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.25)');
+    segGrad.addColorStop(0.5, bright ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.12)');
+    segGrad.addColorStop(1,   'rgba(0,0,0,0)');
     ctx.beginPath();
     ctx.arc(cx, cy, BO, a1, a2);
     ctx.arc(cx, cy, BI, a2, a1, true);
     ctx.closePath();
-    ctx.fillStyle = i % 2 === 0 ? bezel : shade(bezel, -45);
+    ctx.fillStyle = segGrad;
     ctx.fill();
   }
+
+  // 12 o'clock pip marker
+  var pipA = -Math.PI / 2;
+  ctx.beginPath();
+  ctx.moveTo(cx + Math.cos(pipA) * (BI + 1), cy + Math.sin(pipA) * (BI + 1));
+  ctx.lineTo(cx + Math.cos(pipA) * (BO - 1), cy + Math.sin(pipA) * (BO - 1));
+  ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+  ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
 
   // Bezel outer rim
   ctx.beginPath();
   ctx.arc(cx, cy, BO, 0, Math.PI * 2);
-  ctx.strokeStyle = shade(bezel, -70);
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  // Bezel inner lip
-  ctx.beginPath();
-  ctx.arc(cx, cy, BI, 0, Math.PI * 2);
-  ctx.strokeStyle = shade(bezel, -55);
+  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
   ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  // White dial fill
+  // Bezel inner lip — polished edge
+  var lipGrad = ctx.createRadialGradient(cx - 15, cy - 15, 40, cx, cy, BI);
+  lipGrad.addColorStop(0, 'rgba(255,255,255,0.6)');
+  lipGrad.addColorStop(1, 'rgba(0,0,0,0.3)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, BI, 0, Math.PI * 2);
+  ctx.strokeStyle = lipGrad;
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Dial fill
   ctx.beginPath();
   ctx.arc(cx, cy, DR, 0, Math.PI * 2);
-  ctx.fillStyle = '#ffffff';
+  ctx.fillStyle = dial;
   ctx.fill();
 
   // Dial edge
@@ -595,10 +635,10 @@ function drawWatch() {
     var ang = (j / 12) * Math.PI * 2 - Math.PI / 2;
     var isQ = j % 3 === 0;
     ctx.beginPath();
-    ctx.moveTo(cx + Math.cos(ang) * (DR - (isQ ? 12 : 8)), cy + Math.sin(ang) * (DR - (isQ ? 12 : 8)));
-    ctx.lineTo(cx + Math.cos(ang) * (DR - 2),              cy + Math.sin(ang) * (DR - 2));
+    ctx.moveTo(cx + Math.cos(ang) * (DR - (isQ ? 18 : 12)), cy + Math.sin(ang) * (DR - (isQ ? 18 : 12)));
+    ctx.lineTo(cx + Math.cos(ang) * (DR - 3),              cy + Math.sin(ang) * (DR - 3));
     ctx.strokeStyle = isQ ? hand : hand + '99';
-    ctx.lineWidth   = isQ ? 4 : 2;
+    ctx.lineWidth   = isQ ? 6 : 3;
     ctx.lineCap = 'round';
     ctx.stroke();
   }
@@ -611,27 +651,27 @@ function drawWatch() {
   // Hour hand
   var ha = ((hrs + mins / 60) / 12) * Math.PI * 2 - Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(cx - Math.cos(ha) * 8, cy - Math.sin(ha) * 8);
-  ctx.lineTo(cx + Math.cos(ha) * 28, cy + Math.sin(ha) * 28);
-  ctx.strokeStyle = hand; ctx.lineWidth = 5.5; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.moveTo(cx - Math.cos(ha) * 12, cy - Math.sin(ha) * 12);
+  ctx.lineTo(cx + Math.cos(ha) * 42, cy + Math.sin(ha) * 42);
+  ctx.strokeStyle = hand; ctx.lineWidth = 8; ctx.lineCap = 'round'; ctx.stroke();
 
   // Minute hand
   var ma = ((mins + secs / 60) / 60) * Math.PI * 2 - Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(cx - Math.cos(ma) * 8, cy - Math.sin(ma) * 8);
-  ctx.lineTo(cx + Math.cos(ma) * 42, cy + Math.sin(ma) * 42);
-  ctx.strokeStyle = hand; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.moveTo(cx - Math.cos(ma) * 12, cy - Math.sin(ma) * 12);
+  ctx.lineTo(cx + Math.cos(ma) * 63, cy + Math.sin(ma) * 63);
+  ctx.strokeStyle = hand; ctx.lineWidth = 6; ctx.lineCap = 'round'; ctx.stroke();
 
   // Second hand
   var sa = ((secs + ms / 1000) / 60) * Math.PI * 2 - Math.PI / 2;
   ctx.beginPath();
-  ctx.moveTo(cx - Math.cos(sa) * 12, cy - Math.sin(sa) * 12);
-  ctx.lineTo(cx + Math.cos(sa) * 46, cy + Math.sin(sa) * 46);
-  ctx.strokeStyle = bezel; ctx.lineWidth = 2; ctx.lineCap = 'round'; ctx.stroke();
+  ctx.moveTo(cx - Math.cos(sa) * 18, cy - Math.sin(sa) * 18);
+  ctx.lineTo(cx + Math.cos(sa) * 69, cy + Math.sin(sa) * 69);
+  ctx.strokeStyle = hand; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.stroke();
 
   // Center cap
-  ctx.beginPath(); ctx.arc(cx, cy, 5.5, 0, Math.PI * 2); ctx.fillStyle = hand; ctx.fill();
-  ctx.beginPath(); ctx.arc(cx, cy, 2.5, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 8, 0, Math.PI * 2); ctx.fillStyle = hand; ctx.fill();
+  ctx.beginPath(); ctx.arc(cx, cy, 3.5, 0, Math.PI * 2); ctx.fillStyle = dial; ctx.fill();
 }
 
 drawWatch();
