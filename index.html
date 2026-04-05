@@ -408,21 +408,23 @@ var t26 = [
 function build2026() {
   var today = new Date(); today.setHours(0,0,0,0);
   t26.forEach(function(t) {
-    var start     = new Date(t.start); start.setHours(0,0,0,0);
-    var end       = new Date(t.end);   end.setHours(23,59,59,999);
-    var auctionDay = new Date(start); auctionDay.setDate(auctionDay.getDate() - 1);
+    var start      = new Date(t.start); start.setHours(0,0,0,0);
+    var end        = new Date(t.end);   end.setHours(23,59,59,999);
+    var sheetStart = new Date(start);   sheetStart.setDate(sheetStart.getDate() - 3); // Monday
+    var auctionDay = new Date(start);   auctionDay.setDate(auctionDay.getDate() - 1); // Wednesday (day before Thursday)
     var live       = today >= start && today <= end;
     var final      = today > end;
-    var auction    = today.getTime() === auctionDay.getTime();
-    var upcoming   = today < start;
+    var sheetWeek  = today >= sheetStart && today < start && today.getTime() !== auctionDay.getTime(); // Mon–Tue only
+    var auction    = today.getTime() === auctionDay.getTime(); // Wednesday
+    var upcoming   = today < sheetStart;
     var hasSheet   = t.sheet.indexOf('YOUR_') !== 0;
 
     var pillsHtml, pillClass = 'card-pill';
     if (live) {
-      pillsHtml = '<span class="card-pill live-badge" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">● Live · Sheet</span>';
-    } else if (auction && hasSheet) {
+      pillsHtml = '<a href="' + t.sheet + '" target="_blank" class="card-pill live-badge" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">● Live · Sheet</a>';
+    } else if ((sheetWeek || auction) && hasSheet) {
       pillsHtml =
-        '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Field</span>' +
+        '<a href="' + t.fieldUrl + '" target="_blank" class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">Field</a>' +
         '<a href="' + t.sheet + '" target="_blank" class="card-pill" style="margin-left:5px;background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">Sheet</a>';
     } else if (final) {
       pillsHtml = '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Results</span>';
@@ -430,10 +432,10 @@ function build2026() {
       pillsHtml = '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Field</span>';
     }
 
-    var href = live ? t.sheet : (auction ? t.fieldUrl : (upcoming ? t.fieldUrl : (hasSheet ? t.sheet : '#')));
-    var clickable = (upcoming || auction) || (hasSheet && (live || final));
+    var cardHref = live ? t.sheet : (upcoming ? t.fieldUrl : ((sheetWeek || auction) ? null : (hasSheet ? t.sheet : null)));
+    var clickable = !!cardHref;
 
-    var footerHtml = (upcoming || auction)
+    var footerHtml = (upcoming || auction || sheetWeek)
       ? '<span style="color:var(--text-mid);font-size:11px;font-weight:500;white-space:nowrap">Auction: ' + t.auctionDate + '</span>'
       : (live ? 'View Sheet ' + arrow() : 'View Results ' + arrow());
 
@@ -441,7 +443,7 @@ function build2026() {
     card.className = 't-card';
     if (clickable) {
       card.style.cursor = 'pointer';
-      card.onclick = (function(u) { return function() { window.open(u, '_blank'); }; })(href);
+      card.onclick = (function(u) { return function() { window.open(u, '_blank'); }; })(cardHref);
     }
     card.innerHTML =
       '<div class="card-top" style="background:' + t.bg + ';border-bottom-color:' + t.border + '">' +
@@ -449,7 +451,7 @@ function build2026() {
         '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:6px">' + pillsHtml + '</div>' +
       '</div>' +
       '<div class="card-body">' +
-        (upcoming || auction ? '' : '<div class="card-stat"><span>Participants</span><strong>—</strong></div>') +
+        (upcoming || auction || sheetWeek ? '' : '<div class="card-stat"><span>Participants</span><strong>—</strong></div>') +
         '<div class="card-stat"><span>' + t.venue + '</span></div>' +
       '</div>' +
       '<div class="card-footer">' + footerHtml + '</div>';
