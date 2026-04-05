@@ -534,9 +534,17 @@ function drawWatch() {
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var now = new Date();
-  // Display time in Eastern Time (Linton, IN)
-  var etStr = now.toLocaleString('en-US', { timeZone: 'America/Indiana/Indianapolis' });
-  now = new Date(etStr);
+  // Adjust to Eastern Time (Linton, IN) while preserving milliseconds for smooth sweep
+  var etOffset = -5 * 60; // ET is UTC-5 (EST); EDT is UTC-4
+  var isDST = (function() {
+    var jan = new Date(now.getFullYear(), 0, 1).getTimezoneOffset();
+    var jul = new Date(now.getFullYear(), 6, 1).getTimezoneOffset();
+    var stdOffset = Math.max(jan, jul);
+    return now.getTimezoneOffset() < stdOffset;
+  })();
+  var etOffsetMs = (isDST ? -4 : -5) * 60 * 60 * 1000;
+  var utc = now.getTime() + now.getTimezoneOffset() * 60000;
+  now = new Date(utc + etOffsetMs);
 
   // Canvas 240x240 (3x retina), displayed at 80x80 — crisp on all screens
   var cx = 120, cy = 120;
