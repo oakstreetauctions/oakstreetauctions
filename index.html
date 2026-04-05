@@ -405,16 +405,91 @@ var t26 = [
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
-// OPEN SHEET — tries Google Sheets app on iOS, falls back to browser
+// SHEET VIEWER — full screen overlay with auto-refresh every 60 seconds
 function openSheet(url) {
-  var appUrl = url.replace('https://docs.google.com/spreadsheets/', 'googlesheetsapp://');
-  var fallback = setTimeout(function() { window.open(url, '_blank'); }, 400);
-  var iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = appUrl;
-  document.body.appendChild(iframe);
-  window.addEventListener('blur', function() { clearTimeout(fallback); }, { once: true });
-  setTimeout(function() { document.body.removeChild(iframe); }, 1000);
+  // Try Sheets app first on iOS
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    var appUrl = url.replace('https://docs.google.com/spreadsheets/', 'googlesheetsapp://');
+    var appOpened = false;
+    var appFrame = document.createElement('iframe');
+    appFrame.style.display = 'none';
+    appFrame.src = appUrl;
+    document.body.appendChild(appFrame);
+    window.addEventListener('blur', function() { appOpened = true; }, { once: true });
+    setTimeout(function() {
+      document.body.removeChild(appFrame);
+      if (!appOpened) { showSheetOverlay(url); }
+    }, 500);
+  } else {
+    showSheetOverlay(url);
+  }
+}
+
+function showSheetOverlay(url) {
+  var previewUrl = url.replace('/htmlview', '/preview');
+  var overlay = document.createElement('div');
+  overlay.id = 'sheet-overlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:9999;display:flex;flex-direction:column';
+
+  var toolbar = document.createElement('div');
+  toolbar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1a1a1a;flex-shrink:0';
+
+  var title = document.createElement('span');
+  title.style.cssText = 'color:#fff;font-size:13px;font-weight:600;font-family:sans-serif;letter-spacing:0.04em';
+  title.textContent = 'Live Leaderboard';
+
+  var btnWrap = document.createElement('div');
+  btnWrap.style.cssText = 'display:flex;gap:10px;align-items:center';
+
+  var refreshBtn = document.createElement('button');
+  refreshBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif';
+  refreshBtn.textContent = '↻ Refresh';
+
+  var closeBtn = document.createElement('button');
+  closeBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif';
+  closeBtn.textContent = '✕ Close';
+
+  var frame = document.createElement('iframe');
+  frame.src = previewUrl;
+  frame.style.cssText = 'flex:1;border:none;width:100%;background:#fff';
+  frame.setAttribute('frameborder', '0');
+
+  var timer = document.createElement('span');
+  timer.style.cssText = 'color:rgba(255,255,255,0.4);font-size:11px;font-family:sans-serif';
+  timer.textContent = 'Auto-refreshes in 60s';
+
+  // Auto-refresh countdown
+  var countdown = 60;
+  var interval = setInterval(function() {
+    countdown--;
+    timer.textContent = 'Auto-refreshes in ' + countdown + 's';
+    if (countdown <= 0) {
+      frame.src = previewUrl + '?t=' + Date.now();
+      countdown = 60;
+      timer.textContent = 'Auto-refreshes in 60s';
+    }
+  }, 1000);
+
+  refreshBtn.onclick = function() {
+    frame.src = previewUrl + '?t=' + Date.now();
+    countdown = 60;
+    timer.textContent = 'Auto-refreshes in 60s';
+  };
+
+  closeBtn.onclick = function() {
+    clearInterval(interval);
+    document.body.removeChild(overlay);
+  };
+
+  btnWrap.appendChild(timer);
+  btnWrap.appendChild(refreshBtn);
+  btnWrap.appendChild(closeBtn);
+  toolbar.appendChild(title);
+  toolbar.appendChild(btnWrap);
+  overlay.appendChild(toolbar);
+  overlay.appendChild(frame);
+  document.body.appendChild(overlay);
 }
 
 function parseLocalDate(str) {
