@@ -445,34 +445,14 @@ function showSheetOverlay(url) {
   frame.style.cssText = 'flex:1;border:none;width:100%;background:#fff';
   frame.setAttribute('frameborder', '0');
 
-  var timer = document.createElement('span');
-  timer.style.cssText = 'color:rgba(255,255,255,0.4);font-size:11px;font-family:sans-serif';
-  timer.textContent = 'Auto-refreshes in 60s';
-
-  // Auto-refresh countdown
-  var countdown = 60;
-  var interval = setInterval(function() {
-    countdown--;
-    timer.textContent = 'Auto-refreshes in ' + countdown + 's';
-    if (countdown <= 0) {
-      frame.src = previewUrl + '?t=' + Date.now();
-      countdown = 60;
-      timer.textContent = 'Auto-refreshes in 60s';
-    }
-  }, 1000);
-
   refreshBtn.onclick = function() {
     frame.src = previewUrl + '?t=' + Date.now();
-    countdown = 60;
-    timer.textContent = 'Auto-refreshes in 60s';
   };
 
   closeBtn.onclick = function() {
-    clearInterval(interval);
     document.body.removeChild(overlay);
   };
 
-  btnWrap.appendChild(timer);
   btnWrap.appendChild(refreshBtn);
   btnWrap.appendChild(closeBtn);
   toolbar.appendChild(title);
