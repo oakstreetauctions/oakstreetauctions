@@ -405,22 +405,12 @@ var t26 = [
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
-// SHEET VIEWER — full screen overlay with auto-refresh every 60 seconds
+// SHEET VIEWER — opens in Sheets app on iOS if installed, overlay otherwise
 function openSheet(url) {
-  // Try Sheets app first on iOS
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   if (isIOS) {
-    var appUrl = url.replace('https://docs.google.com/spreadsheets/', 'googlesheetsapp://');
-    var appOpened = false;
-    var appFrame = document.createElement('iframe');
-    appFrame.style.display = 'none';
-    appFrame.src = appUrl;
-    document.body.appendChild(appFrame);
-    window.addEventListener('blur', function() { appOpened = true; }, { once: true });
-    setTimeout(function() {
-      document.body.removeChild(appFrame);
-      if (!appOpened) { showSheetOverlay(url); }
-    }, 500);
+    // iOS intercepts docs.google.com links and opens Sheets app if installed
+    window.location.href = url;
   } else {
     showSheetOverlay(url);
   }
@@ -498,7 +488,7 @@ function parseLocalDate(str) {
 }
 
 function build2026() {
-  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0); // TEST: Monday Apr 6
+  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0);
   t26.forEach(function(t) {
     var start      = parseLocalDate(t.start);
     var end        = parseLocalDate(t.end); end.setHours(23,59,59,999);
@@ -588,7 +578,7 @@ function applyTheme(key) {
 }
 
 function detectTheme() {
-  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0); // TEST: Monday Apr 6
+  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0);
   var yr = today.getFullYear();
 
   // Theme windows: start = Mar 15, end = event end + 7 days
