@@ -405,6 +405,18 @@ var t26 = [
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
+// OPEN SHEET — tries Google Sheets app on iOS, falls back to browser
+function openSheet(url) {
+  var appUrl = url.replace('https://docs.google.com/spreadsheets/', 'googlesheetsapp://');
+  var fallback = setTimeout(function() { window.open(url, '_blank'); }, 400);
+  var iframe = document.createElement('iframe');
+  iframe.style.display = 'none';
+  iframe.src = appUrl;
+  document.body.appendChild(iframe);
+  window.addEventListener('blur', function() { clearTimeout(fallback); }, { once: true });
+  setTimeout(function() { document.body.removeChild(iframe); }, 1000);
+}
+
 function parseLocalDate(str) {
   var p = str.split('-');
   return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
@@ -426,11 +438,11 @@ function build2026() {
 
     var pillsHtml, pillClass = 'card-pill';
     if (live) {
-      pillsHtml = '<a href="' + t.sheet + '" target="_blank" class="card-pill live-badge" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">● Live · Sheet</a>';
+      pillsHtml = '<a onclick="openSheet(\'' + t.sheet + '\');return false;" href="' + t.sheet + '" class="card-pill live-badge" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none;cursor:pointer">● Live · Sheet</a>';
     } else if ((sheetWeek || auction) && hasSheet) {
       pillsHtml =
         '<a href="' + t.fieldUrl + '" target="_blank" class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">Field</a>' +
-        '<a href="' + t.sheet + '" target="_blank" class="card-pill" style="margin-left:5px;background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none">Sheet</a>';
+        '<a onclick="openSheet(\'' + t.sheet + '\');return false;" href="' + t.sheet + '" class="card-pill" style="margin-left:5px;background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + ';text-decoration:none;cursor:pointer">Sheet</a>';
     } else if (final) {
       pillsHtml = '<span class="card-pill" style="background:' + t.pillBg + ';' + (t.pillBorder ? 'border:1px solid ' + t.pillBorder + ';' : '') + 'color:' + t.pillColor + '">Results</span>';
     } else {
@@ -448,7 +460,11 @@ function build2026() {
     card.className = 't-card';
     if (clickable) {
       card.style.cursor = 'pointer';
-      card.onclick = (function(u) { return function() { window.open(u, '_blank'); }; })(cardHref);
+      if (live || final) {
+        card.onclick = (function(u) { return function() { openSheet(u); }; })(cardHref);
+      } else {
+        card.onclick = (function(u) { return function() { window.open(u, '_blank'); }; })(cardHref);
+      }
     }
     card.innerHTML =
       '<div class="card-top" style="background:' + t.bg + ';border-bottom-color:' + t.border + '">' +
