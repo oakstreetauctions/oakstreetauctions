@@ -405,7 +405,7 @@ var t26 = [
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
-// SHEET VIEWER — desktop opens directly, iOS gets scaled overlay
+// SHEET VIEWER — desktop opens directly, mobile gets scaled overlay
 function openSheet(url) {
   var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   var isMobile = isIOS || /Android/.test(navigator.userAgent);
@@ -413,69 +413,60 @@ function openSheet(url) {
     window.open(url, '_blank');
     return;
   }
-  if (isIOS) {
-    // Build Sheets app deep link from the spreadsheet ID
-    var match = url.match(/spreadsheets\/d\/e\/([^/]+)/);
-    if (match) {
-      var appUrl = 'googlesheetsapp://spreadsheets/d/e/' + match[1];
-      var appOpened = false;
-      var t = setTimeout(function() {
-        if (!appOpened) showSheetOverlay(url);
-      }, 800);
-      window.addEventListener('pagehide', function() {
-        appOpened = true;
-        clearTimeout(t);
-      }, { once: true });
-      window.location.href = appUrl;
-    } else {
-      showSheetOverlay(url);
-    }
-  } else {
-    showSheetOverlay(url);
-  }
+  showSheetOverlay(url);
 }
 
 function showSheetOverlay(url) {
   var overlay = document.createElement('div');
   overlay.id = 'sheet-overlay';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:9999;display:flex;flex-direction:column';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:9999;display:flex;flex-direction:column;';
 
   var toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1a1a1a;flex-shrink:0';
+  toolbar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1a1a1a;flex-shrink:0;';
 
   var title = document.createElement('span');
-  title.style.cssText = 'color:#fff;font-size:13px;font-weight:600;font-family:sans-serif;letter-spacing:0.04em';
+  title.style.cssText = 'color:#fff;font-size:13px;font-weight:600;font-family:sans-serif;letter-spacing:0.04em;';
   title.textContent = 'Live Leaderboard';
 
   var btnWrap = document.createElement('div');
-  btnWrap.style.cssText = 'display:flex;gap:10px;align-items:center';
+  btnWrap.style.cssText = 'display:flex;gap:10px;align-items:center;';
+
+  var openBtn = document.createElement('button');
+  openBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;';
+  openBtn.textContent = '↗ Open';
+  openBtn.onclick = function() { window.open(url, '_blank'); };
 
   var refreshBtn = document.createElement('button');
-  refreshBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif';
-  refreshBtn.textContent = '↻ Refresh';
+  refreshBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;';
+  refreshBtn.textContent = '↻';
 
   var closeBtn = document.createElement('button');
-  closeBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif';
-  closeBtn.textContent = '✕ Close';
+  closeBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;';
+  closeBtn.textContent = '✕';
 
-  // Use full screen width with no scaling — let user pinch zoom naturally
+  // Scale the sheet to fit the full screen width
+  // pubhtml sheets render at ~1024px wide internally
+  var sheetNativeWidth = 1024;
+  var screenW = window.innerWidth;
+  var scale = screenW / sheetNativeWidth;
+  var toolbarH = 56;
+  var frameH = Math.round((window.innerHeight - toolbarH) / scale);
+
   var frameWrap = document.createElement('div');
-  frameWrap.style.cssText = 'flex:1;overflow:auto;-webkit-overflow-scrolling:touch;position:relative;background:#fff';
+  frameWrap.style.cssText = 'width:' + screenW + 'px;height:' + Math.round(frameH * scale) + 'px;overflow:hidden;flex-shrink:0;';
 
   var frame = document.createElement('iframe');
   frame.src = url;
   frame.setAttribute('frameborder', '0');
   frame.setAttribute('scrolling', 'yes');
-  frame.style.cssText = 'border:none;width:100%;height:100%;display:block;min-height:600px;';
+  frame.style.cssText = 'border:none;width:' + sheetNativeWidth + 'px;height:' + frameH + 'px;display:block;' +
+    'transform:scale(' + scale + ');transform-origin:top left;' +
+    '-webkit-transform:scale(' + scale + ');-webkit-transform-origin:top left;';
 
-  refreshBtn.onclick = function() {
-    frame.src = url + '?t=' + Date.now();
-  };
+  refreshBtn.onclick = function() { frame.src = url + '?r=' + Date.now(); };
+  closeBtn.onclick = function() { document.body.removeChild(overlay); };
 
-  closeBtn.onclick = function() {
-    document.body.removeChild(overlay);
-  };
-
+  btnWrap.appendChild(openBtn);
   btnWrap.appendChild(refreshBtn);
   btnWrap.appendChild(closeBtn);
   toolbar.appendChild(title);
