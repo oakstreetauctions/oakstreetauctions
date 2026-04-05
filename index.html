@@ -405,76 +405,9 @@ var t26 = [
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
-// SHEET VIEWER — desktop opens directly, mobile gets scaled overlay
+// SHEET — opens in Google Sheets app if installed, Safari otherwise
 function openSheet(url) {
-  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  var isMobile = isIOS || /Android/.test(navigator.userAgent);
-  if (!isMobile) {
-    window.open(url, '_blank');
-    return;
-  }
-  showSheetOverlay(url);
-}
-
-function showSheetOverlay(url) {
-  var overlay = document.createElement('div');
-  overlay.id = 'sheet-overlay';
-  overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#111;z-index:9999;display:flex;flex-direction:column;';
-
-  var toolbar = document.createElement('div');
-  toolbar.style.cssText = 'display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#1a1a1a;flex-shrink:0;';
-
-  var title = document.createElement('span');
-  title.style.cssText = 'color:#fff;font-size:13px;font-weight:600;font-family:sans-serif;letter-spacing:0.04em;';
-  title.textContent = 'Live Leaderboard';
-
-  var btnWrap = document.createElement('div');
-  btnWrap.style.cssText = 'display:flex;gap:10px;align-items:center;';
-
-  var openBtn = document.createElement('button');
-  openBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;';
-  openBtn.textContent = '↗ Open';
-  openBtn.onclick = function() { window.open(url, '_blank'); };
-
-  var refreshBtn = document.createElement('button');
-  refreshBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;';
-  refreshBtn.textContent = '↻';
-
-  var closeBtn = document.createElement('button');
-  closeBtn.style.cssText = 'background:rgba(255,255,255,0.12);border:none;color:#fff;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;font-family:sans-serif;';
-  closeBtn.textContent = '✕';
-
-  // Scale the sheet to fit the full screen width
-  // pubhtml sheets render at ~1024px wide internally
-  var sheetNativeWidth = 1024;
-  var screenW = window.innerWidth;
-  var scale = screenW / sheetNativeWidth;
-  var toolbarH = 56;
-  var frameH = Math.round((window.innerHeight - toolbarH) / scale);
-
-  var frameWrap = document.createElement('div');
-  frameWrap.style.cssText = 'width:' + screenW + 'px;height:' + Math.round(frameH * scale) + 'px;overflow:hidden;flex-shrink:0;';
-
-  var frame = document.createElement('iframe');
-  frame.src = url;
-  frame.setAttribute('frameborder', '0');
-  frame.setAttribute('scrolling', 'yes');
-  frame.style.cssText = 'border:none;width:' + sheetNativeWidth + 'px;height:' + frameH + 'px;display:block;' +
-    'transform:scale(' + scale + ');transform-origin:top left;' +
-    '-webkit-transform:scale(' + scale + ');-webkit-transform-origin:top left;';
-
-  refreshBtn.onclick = function() { frame.src = url + '?r=' + Date.now(); };
-  closeBtn.onclick = function() { document.body.removeChild(overlay); };
-
-  btnWrap.appendChild(openBtn);
-  btnWrap.appendChild(refreshBtn);
-  btnWrap.appendChild(closeBtn);
-  toolbar.appendChild(title);
-  toolbar.appendChild(btnWrap);
-  frameWrap.appendChild(frame);
-  overlay.appendChild(toolbar);
-  overlay.appendChild(frameWrap);
-  document.body.appendChild(overlay);
+  window.open(url, '_blank');
 }
 
 function parseLocalDate(str) {
@@ -483,7 +416,7 @@ function parseLocalDate(str) {
 }
 
 function build2026() {
-  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0);
+  var today = new Date(); today.setHours(0,0,0,0);
   t26.forEach(function(t) {
     var start      = parseLocalDate(t.start);
     var end        = parseLocalDate(t.end); end.setHours(23,59,59,999);
@@ -573,7 +506,7 @@ function applyTheme(key) {
 }
 
 function detectTheme() {
-  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0);
+  var today = new Date(); today.setHours(0,0,0,0);
   var yr = today.getFullYear();
 
   // Theme windows: start = Mar 15, end = event end + 7 days
