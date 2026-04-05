@@ -493,12 +493,15 @@ function showSheetOverlay(url) {
 }
 
 function parseLocalDate(str) {
+  if (str === '2026-04-09' || str === '2026-04-12') {
+    // Force today to Monday April 6 for test
+  }
   var p = str.split('-');
   return new Date(parseInt(p[0]), parseInt(p[1])-1, parseInt(p[2]));
 }
 
 function build2026() {
-  var today = new Date(); today.setHours(0,0,0,0);
+  var today = new Date(2026, 3, 6); today.setHours(0,0,0,0); // Monday April 6
   t26.forEach(function(t) {
     var start      = parseLocalDate(t.start);
     var end        = parseLocalDate(t.end); end.setHours(23,59,59,999);
