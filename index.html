@@ -405,9 +405,14 @@ var t26 = [
     bg:'#4D148C', border:'#FF6600', pillBg:'#FF6600', pillBorder:null, pillColor:'#fff', nameColor:'#fff' }
 ];
 
-// SHEET — opens in Google Sheets app if installed, Safari otherwise
+// SHEET — opens in Google Sheets app on iOS, new tab on desktop
 function openSheet(url) {
-  window.open(url, '_blank');
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  if (isIOS) {
+    window.location.href = url;
+  } else {
+    window.open(url, '_blank');
+  }
 }
 
 function parseLocalDate(str) {
